@@ -1,4 +1,43 @@
-var transitionize = function(config) {
+var transitionize = function (config) {
+	
+	
+	
+	var killTransition = function(node) {
+		node.style.webkitTransition = 'none';
+	};
+	
+	var resetTransition = function(node) {
+		setTimeout(function() {
+			node.style.webkitTransition = '';
+		}, 0);
+	};
+	
+	
+	var getRealHeight = function(node) {
+		
+		if (window.getComputedStyle) {
+			return window.getComputedStyle(node, null).height;
+		}
+		/*
+		if (node.currentStyle) {
+			return node.currentStyle.height;
+		}
+		*/
+		
+		node.style.paddingTop = 0;
+		node.style.paddingBottom = 0;
+		killTransition(node);
+		
+		var realHeight = node.offsetHeight + 'px';
+		
+		node.style.paddingTop = '';
+		node.style.paddingBottom = '';
+		resetTransition(node);
+		
+		return realHeight;
+	}
+	
+	
 	
 	
 	var elements = document.querySelectorAll(config.selector);
@@ -8,16 +47,9 @@ var transitionize = function(config) {
 		var node = elements[i];
 		top.tester = node;
 		
-		node.style.paddingTop = 0;
-		node.style.paddingBottom = 0;
-		node.style.webkitTransition = 'none';
-		
-		node.style.height = node.offsetHeight + 'px';
-		
-		node.style.paddingTop = '';
-		node.style.paddingBottom = '';
-		setTimeout(function() { node.style.webkitTransition = ''; }, 0);
-		
+		killTransition(node);
+		node.style.height = getRealHeight(node);
+		resetTransition(node);
 		
 		for (var j=0,len=document.styleSheets[0].rules.length; j<len; j++) {
 			var rule = document.styleSheets[0].rules[j];
@@ -35,6 +67,7 @@ var transitionize = function(config) {
 		}
 		
 	}
+	
 	
 	
 };
