@@ -51,15 +51,15 @@ var transitionize = function (config) {
 		node.style.height = getRealHeight(node);
 		resetTransition(node);
 		
-		for (var j=0,len=document.styleSheets[0].rules.length; j<len; j++) {
-			var rule = document.styleSheets[0].rules[j];
-			if (rule.selectorText.match(/.container/)) {
+		var rules = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+		for (var j=0,len=rules.length; j<len; j++) {
+			var rule = rules[j];
+			if (rule.selectorText && rule.selectorText.match(config.selector)) {
 				
 				var hasHeight = false;
 				for (var k=0; k<rule.style.length; k++) {
-					if (rule.style[k] == 'height') {
+					if (rule.style[k] == 'height' && rule.style.height != 'auto') {
 						rule.style.setProperty('height', rule.style.height, 'important');
-						
 					}
 				}
 				
