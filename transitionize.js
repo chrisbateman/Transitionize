@@ -14,16 +14,11 @@ var transitionize = function (config) {
 	
 	
 	var getRealHeight = function(node) {
-		
 		if (window.getComputedStyle) {
 			return window.getComputedStyle(node, null).height;
 		}
-		/*
-		if (node.currentStyle) {
-			return node.currentStyle.height;
-		}
-		*/
 		
+		// looks like we're gonna do this the hard way
 		node.style.paddingTop = 0;
 		node.style.paddingBottom = 0;
 		killTransition(node);
@@ -42,30 +37,35 @@ var transitionize = function (config) {
 	
 	var elements = document.querySelectorAll(config.selector);
 	
-	var i = elements.length;
-	while (i--) {
-		var node = elements[i];
+	var eIndex = elements.length;
+	while (eIndex--) {
+		var node = elements[eIndex];
 		top.tester = node;
 		
-		killTransition(node);
+		killTransition(node); // not necessary for FF
 		node.style.height = getRealHeight(node);
-		resetTransition(node);
+		resetTransition(node); //not necessary for FF
 		
-		var rules = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
-		for (var j=0,len=rules.length; j<len; j++) {
-			var rule = rules[j];
-			if (rule.selectorText && rule.selectorText.match(config.selector)) {
-				
-				var hasHeight = false;
-				for (var k=0; k<rule.style.length; k++) {
-					if (rule.style[k] == 'height' && rule.style.height != 'auto') {
-						rule.style.setProperty('height', rule.style.height, 'important');
+		
+		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
+			var styleSheet = document.styleSheets[sheetIndex];
+			
+			var rules = styleSheet.rules || styleSheet.cssRules;
+			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
+				var rule = rules[ruleIndex];
+				if (rule.selectorText && rule.selectorText.match(config.selector)) {
+					
+					var hasHeight = false;
+					for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
+						if (rule.style[styleIndex] == 'height' && rule.style.height != 'auto') {
+							rule.style.setProperty('height', rule.style.height, 'important');
+						}
 					}
+					
 				}
-				
 			}
+			
 		}
-		
 	}
 	
 	
