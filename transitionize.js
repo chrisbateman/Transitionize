@@ -4,11 +4,14 @@ var transitionize = function (config) {
 	
 	var killTransition = function(node) {
 		node.style.webkitTransition = 'none';
+		node.style.OTransition = 'none'; // :(
+		// not necessary for FF
 	};
 	
 	var resetTransition = function(node) {
 		setTimeout(function() {
 			node.style.webkitTransition = '';
+			node.style.OTransition = '';
 		}, 0);
 	};
 	
@@ -40,34 +43,30 @@ var transitionize = function (config) {
 	var eIndex = elements.length;
 	while (eIndex--) {
 		var node = elements[eIndex];
-		top.tester = node;
 		
-		killTransition(node); // not necessary for FF
+		killTransition(node);
 		node.style.height = getRealHeight(node);
-		resetTransition(node); //not necessary for FF
-		
-		
-		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
-			var styleSheet = document.styleSheets[sheetIndex];
-			
-			var rules = styleSheet.rules || styleSheet.cssRules;
-			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
-				var rule = rules[ruleIndex];
-				if (rule.selectorText && rule.selectorText.match(config.selector)) {
-					
-					var hasHeight = false;
-					for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
-						if (rule.style[styleIndex] == 'height' && rule.style.height != 'auto') {
-							rule.style.setProperty('height', rule.style.height, 'important');
-						}
-					}
-					
-				}
-			}
-			
-		}
+		resetTransition(node);
 	}
 	
 	
+	for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
+		var styleSheet = document.styleSheets[sheetIndex];
+		
+		var rules = styleSheet.rules || styleSheet.cssRules;
+		for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
+			var rule = rules[ruleIndex];
+			if (rule.selectorText && rule.selectorText.match(config.selector)) {
+				
+				var hasHeight = false;
+				for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
+					if (rule.style[styleIndex] == 'height' && rule.style.height != 'auto') {
+						rule.style.setProperty('height', rule.style.height, 'important');
+					}
+				}
+				
+			}
+		}
+	}
 	
 };
