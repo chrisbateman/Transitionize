@@ -17,6 +17,8 @@ var transitionize = function (config) {
 	
 	
 	var getRealHeight = function(node) {
+		node.style.height = '';
+		
 		if (window.getComputedStyle) {
 			return window.getComputedStyle(node, null).height;
 		}
@@ -37,36 +39,58 @@ var transitionize = function (config) {
 	
 	
 	
-	
-	var elements = document.querySelectorAll(config.selector);
-	
-	var eIndex = elements.length;
-	while (eIndex--) {
-		var node = elements[eIndex];
-		
-		killTransition(node);
-		node.style.height = getRealHeight(node);
-		resetTransition(node);
-	}
-	
-	
-	for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
-		var styleSheet = document.styleSheets[sheetIndex];
-		
-		var rules = styleSheet.rules || styleSheet.cssRules;
-		for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
-			var rule = rules[ruleIndex];
-			if (rule.selectorText && rule.selectorText.match(config.selector)) {
-				
-				var hasHeight = false;
-				for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
-					if (rule.style[styleIndex] == 'height' && rule.style.height != 'auto') {
-						rule.style.setProperty('height', rule.style.height, 'important');
+	var addCSSUpdates = function() {
+		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
+			var styleSheet = document.styleSheets[sheetIndex];
+			
+			var rules = styleSheet.rules || styleSheet.cssRules;
+			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
+				var rule = rules[ruleIndex];
+				if (rule.selectorText && rule.selectorText.match(config.selector)) {
+					
+					var hasHeight = false;
+					for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
+						if (rule.style[styleIndex] == 'height' && rule.style.height != 'auto') {
+							rule.style.setProperty('height', rule.style.height, 'important');
+						}
 					}
+					
 				}
-				
 			}
 		}
-	}
+	};
+	
+	
+	
+	var sizeElements = function() {
+		var elements = document.querySelectorAll(config.selector);
+		
+		var eIndex = elements.length;
+		while (eIndex--) {
+			var node = elements[eIndex];
+			
+			killTransition(node);
+			node.style.height = getRealHeight(node);
+			resetTransition(node);
+		}
+	};
+	
+	
+	
+	
+	
+	(function init() {
+		sizeElements();
+		addCSSUpdates();
+		
+		var resizeTimeout;
+		window.addEventListener('resize', function() {
+			window.clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(function() {
+				sizeElements();
+			}, 50);
+		});
+	})();
+	
 	
 };
