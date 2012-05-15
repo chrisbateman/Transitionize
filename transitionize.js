@@ -1,5 +1,7 @@
-var transitionize = function (config) {
+
+var transitionize = (function () {
 	
+	var _config;
 	
 	
 	var killTransition = function(node) {
@@ -46,7 +48,7 @@ var transitionize = function (config) {
 			var rules = styleSheet.rules || styleSheet.cssRules;
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
 				var rule = rules[ruleIndex];
-				if (rule.selectorText && rule.selectorText.match(config.selector)) {
+				if (rule.selectorText && rule.selectorText.match(_config.selector)) {
 					
 					var hasHeight = false;
 					for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
@@ -61,9 +63,8 @@ var transitionize = function (config) {
 	};
 	
 	
-	
 	var sizeElements = function() {
-		var elements = document.querySelectorAll(config.selector);
+		var elements = document.querySelectorAll(_config.selector);
 		
 		var eIndex = elements.length;
 		while (eIndex--) {
@@ -76,13 +77,7 @@ var transitionize = function (config) {
 	};
 	
 	
-	
-	
-	
-	(function init() {
-		sizeElements();
-		addCSSUpdates();
-		
+	var setSizeListener = function() {
 		var resizeTimeout;
 		window.addEventListener('resize', function() {
 			window.clearTimeout(resizeTimeout);
@@ -90,7 +85,23 @@ var transitionize = function (config) {
 				sizeElements();
 			}, 50);
 		});
-	})();
+	};
 	
 	
-};
+	
+	var _init = function(config) {
+		
+		_config = config;
+		
+		sizeElements();
+		addCSSUpdates();
+		
+		setSizeListener();
+	};
+	
+	
+	return {
+		init: _init
+	};
+	
+})();
