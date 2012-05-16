@@ -59,13 +59,9 @@ var transitionize = (function () {
 				var rule = rules[ruleIndex];
 				if (rule.selectorText && rule.selectorText.match(_config.selector)) {
 					
-					var hasHeight = false;
-					for (var styleIndex=0; styleIndex<rule.style.length; styleIndex++) {
-						if (rule.style[styleIndex] == 'height' && rule.style.height != 'auto') {
-							rule.style.setProperty('height', rule.style.height, 'important');
-						}
+					if (rule.style.height != '' && rule.style.height != 'auto') {
+						rule.style.setProperty('height', rule.style.height, 'important');
 					}
-					
 				}
 			}
 		}
