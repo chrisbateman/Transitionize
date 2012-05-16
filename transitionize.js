@@ -19,24 +19,33 @@ var transitionize = (function () {
 	
 	
 	var getRealHeight = function(node) {
-		node.style.height = '';
+		var height;
 		
 		if (window.getComputedStyle) {
-			return window.getComputedStyle(node, null).height;
+			height = window.getComputedStyle(node, null).height;
+			
+			if (height == '0px') { // try again
+				killTransition(node);
+				node.style.height = 'auto';
+				height = window.getComputedStyle(node, null).height;
+				node.style.height = '';
+				resetTransition(node);
+			}
+		} else { // looks like we're gonna do this the hard way
+			killTransition(node);
+			node.style.paddingTop = 0;
+			node.style.paddingBottom = 0;
+			node.style.height = 'auto';
+			
+			height = node.offsetHeight + 'px';
+			
+			node.style.height = '';
+			node.style.paddingTop = '';
+			node.style.paddingBottom = '';
+			resetTransition(node);
 		}
 		
-		// looks like we're gonna do this the hard way
-		node.style.paddingTop = 0;
-		node.style.paddingBottom = 0;
-		killTransition(node);
-		
-		var realHeight = node.offsetHeight + 'px';
-		
-		node.style.paddingTop = '';
-		node.style.paddingBottom = '';
-		resetTransition(node);
-		
-		return realHeight;
+		return height;
 	}
 	
 	
