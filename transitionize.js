@@ -25,14 +25,14 @@ var transitionize = (function () {
 			height = window.getComputedStyle(node, null).height;
 			
 			if (height == '0px') { // try again
-				killTransition(node);
+				//killTransition(node);
 				node.style.height = 'auto';
 				height = window.getComputedStyle(node, null).height;
 				node.style.height = '';
-				resetTransition(node);
+				//resetTransition(node);
 			}
 		} else { // looks like we're gonna do this the hard way
-			killTransition(node);
+			//killTransition(node);
 			node.style.paddingTop = 0;
 			node.style.paddingBottom = 0;
 			node.style.height = 'auto';
@@ -42,7 +42,7 @@ var transitionize = (function () {
 			node.style.height = '';
 			node.style.paddingTop = '';
 			node.style.paddingBottom = '';
-			resetTransition(node);
+			//resetTransition(node);
 		}
 		
 		return height;
@@ -98,7 +98,9 @@ var transitionize = (function () {
 		
 		_config = config;
 		
-		sizeElements();
+		if (window.innerWidth != 0) {
+			sizeElements();
+		}
 		addCSSUpdates();
 		
 		setSizeListener();
