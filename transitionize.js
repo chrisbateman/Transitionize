@@ -26,7 +26,8 @@ var transitionize = (function () {
 			
 			if (height == '0px') { // try again
 				//killTransition(node);
-				node.style.height = 'auto';
+				//node.style.height = 'auto';
+				node.style.setProperty('height', 'auto', 'important');
 				height = window.getComputedStyle(node, null).height;
 				node.style.height = '';
 				//resetTransition(node);
@@ -98,7 +99,7 @@ var transitionize = (function () {
 		
 		_config = config;
 		
-		if (window.innerWidth != 0) {
+		if (window.innerWidth != 0) { // fixes strange issue opening new tab with alt+enter
 			sizeElements();
 		}
 		addCSSUpdates();
@@ -108,7 +109,8 @@ var transitionize = (function () {
 	
 	
 	return {
-		init: _init
+		init: _init,
+		update: sizeElements
 	};
 	
 })();
