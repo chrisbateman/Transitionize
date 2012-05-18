@@ -22,16 +22,13 @@ var transitionize = (function () {
 		var height;
 		
 		if (window.getComputedStyle) {
+			//killTransition(node);
+			//node.style.height = 'auto';
+			node.style.setProperty('height', 'auto', 'important');
 			height = window.getComputedStyle(node, null).height;
-			
-			if (height == '0px') { // try again
-				//killTransition(node);
-				//node.style.height = 'auto';
-				node.style.setProperty('height', 'auto', 'important');
-				height = window.getComputedStyle(node, null).height;
-				node.style.height = '';
-				//resetTransition(node);
-			}
+			console.log(height);
+			node.style.height = '';
+			//resetTransition(node);
 		} else { // looks like we're gonna do this the hard way
 			//killTransition(node);
 			node.style.paddingTop = 0;
