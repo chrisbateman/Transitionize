@@ -4,13 +4,13 @@ var transitionize = (function () {
 	var _config;
 	
 	
-	var killTransition = function(node) {
+	var _killTransition = function(node) {
 		node.style.webkitTransition = 'none';
 		//node.style.OTransition = 'none'; // :(
 		// not necessary for FF
 	};
 	
-	var resetTransition = function(node) {
+	var _resetTransition = function(node) {
 		setTimeout(function() {
 			node.style.webkitTransition = '';
 			//node.style.OTransition = '';
@@ -18,18 +18,15 @@ var transitionize = (function () {
 	};
 	
 	
-	var getRealHeight = function(node) {
+	var _getRealHeight = function(node) {
 		var height;
 		
 		if (window.getComputedStyle) {
-			//killTransition(node);
 			//node.style.height = 'auto';
 			node.style.setProperty('height', 'auto', 'important');
 			height = window.getComputedStyle(node, null).height;
 			node.style.height = '';
-			//resetTransition(node);
 		} else { // looks like we're gonna do this the hard way
-			//killTransition(node);
 			node.style.paddingTop = 0;
 			node.style.paddingBottom = 0;
 			node.style.height = 'auto';
@@ -39,7 +36,6 @@ var transitionize = (function () {
 			node.style.height = '';
 			node.style.paddingTop = '';
 			node.style.paddingBottom = '';
-			//resetTransition(node);
 		}
 		
 		return height;
@@ -47,7 +43,7 @@ var transitionize = (function () {
 	
 	
 	
-	var addCSSUpdates = function() {
+	var _addCSSUpdates = function() {
 		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
 			var styleSheet = document.styleSheets[sheetIndex];
 			
@@ -65,25 +61,25 @@ var transitionize = (function () {
 	};
 	
 	
-	var sizeElements = function() {
+	var _sizeElements = function() {
 		var elements = document.querySelectorAll(_config.selector);
 		
 		var eIndex = elements.length;
 		while (eIndex--) {
 			var node = elements[eIndex];
 			
-			killTransition(node);
-			node.style.height = getRealHeight(node);
-			resetTransition(node);
+			_killTransition(node);
+			node.style.height = _getRealHeight(node);
+			_resetTransition(node);
 		}
 	};
 	
 	
-	var setSizeListener = function() {
+	var _setSizeListener = function() {
 		var resizeTimeout;
 		window.addEventListener('resize', function() {
 			window.clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(sizeElements, 50);
+			resizeTimeout = setTimeout(_sizeElements, 50);
 		});
 	};
 	
@@ -97,17 +93,17 @@ var transitionize = (function () {
 		_config = config;
 		
 		if (window.innerWidth != 0) { // fixes strange issue opening new tab with alt+enter
-			sizeElements();
+			_sizeElements();
 		}
-		addCSSUpdates();
+		_addCSSUpdates();
 		
-		setSizeListener();
+		_setSizeListener();
 	};
 	
 	
 	return {
 		init: _init,
-		update: sizeElements
+		update: _sizeElements
 	};
 	
 })();
