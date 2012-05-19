@@ -6,14 +6,14 @@ var transitionize = (function () {
 	
 	var killTransition = function(node) {
 		node.style.webkitTransition = 'none';
-		node.style.OTransition = 'none'; // :(
+		//node.style.OTransition = 'none'; // :(
 		// not necessary for FF
 	};
 	
 	var resetTransition = function(node) {
 		setTimeout(function() {
 			node.style.webkitTransition = '';
-			node.style.OTransition = '';
+			//node.style.OTransition = '';
 		}, 0);
 	};
 	
@@ -26,7 +26,6 @@ var transitionize = (function () {
 			//node.style.height = 'auto';
 			node.style.setProperty('height', 'auto', 'important');
 			height = window.getComputedStyle(node, null).height;
-			console.log(height);
 			node.style.height = '';
 			//resetTransition(node);
 		} else { // looks like we're gonna do this the hard way
@@ -84,15 +83,16 @@ var transitionize = (function () {
 		var resizeTimeout;
 		window.addEventListener('resize', function() {
 			window.clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(function() {
-				sizeElements();
-			}, 50);
+			resizeTimeout = setTimeout(sizeElements, 50);
 		});
 	};
 	
 	
 	
 	var _init = function(config) {
+		if ((typeof Modernizr != 'undefined' && !Modernizr.csstransitions) || navigator.appName == 'Opera') {
+			return;
+		}
 		
 		_config = config;
 		
