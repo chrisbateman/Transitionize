@@ -1,7 +1,8 @@
 
 var transitionize = (function () {
 	
-	var _config;
+	var _selectors = [];
+	var _selector;
 	
 	
 	var _killTransition = function(node) {
@@ -50,9 +51,11 @@ var transitionize = (function () {
 			var rules = styleSheet.rules || styleSheet.cssRules;
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
 				var rule = rules[ruleIndex];
-				if (rule.selectorText && rule.selectorText.match(_config.selector)) {
-					
-					if (rule.style.height != '' && rule.style.height != 'auto') {
+				
+				if (rule.cssText.match('transition') && rule.style.height != '') {
+					if (rule.style.height == 'auto') {
+						_selectors.push(rule.selectorText);
+					} else {
 						rule.style.setProperty('height', rule.style.height, 'important');
 					}
 				}
@@ -62,7 +65,8 @@ var transitionize = (function () {
 	
 	
 	var _sizeElements = function() {
-		var elements = document.querySelectorAll(_config.selector);
+		
+		var elements = document.querySelectorAll(_selectors.join(', '));
 		
 		var eIndex = elements.length;
 		while (eIndex--) {
@@ -85,21 +89,21 @@ var transitionize = (function () {
 	
 	
 	
-	var _init = function(config) {
+	var _init = function() {
 		if ((typeof Modernizr != 'undefined' && !Modernizr.csstransitions) || navigator.appName == 'Opera') {
 			return;
 		}
 		
-		_config = config;
+		_addCSSUpdates();
 		
 		if (window.innerWidth != 0) { // fixes strange issue opening new tab with alt+enter
 			_sizeElements();
 		}
-		_addCSSUpdates();
 		
 		_setSizeListener();
 	};
 	
+	_init();
 	
 	return {
 		init: _init,
