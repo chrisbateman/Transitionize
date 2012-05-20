@@ -2,7 +2,6 @@
 var transitionize = (function () {
 	
 	var _selectors = [];
-	var _selector;
 	
 	
 	var _killTransition = function(node) {
@@ -30,7 +29,8 @@ var transitionize = (function () {
 		} else { // looks like we're gonna do this the hard way
 			node.style.paddingTop = 0;
 			node.style.paddingBottom = 0;
-			node.style.height = 'auto';
+			//node.style.height = 'auto';
+			node.style.setProperty('height', 'auto', 'important');
 			
 			height = node.offsetHeight + 'px';
 			
@@ -55,7 +55,7 @@ var transitionize = (function () {
 				if (rule.cssText.match('transition') && rule.style.height != '') {
 					if (rule.style.height == 'auto') {
 						_selectors.push(rule.selectorText);
-					} else {
+					} else if (rule.style.height != '') {
 						rule.style.setProperty('height', rule.style.height, 'important');
 					}
 				}
@@ -89,7 +89,7 @@ var transitionize = (function () {
 	
 	
 	
-	var _init = function() {
+	var _init = (function() {
 		if ((typeof Modernizr != 'undefined' && !Modernizr.csstransitions) || navigator.appName == 'Opera') {
 			return;
 		}
@@ -101,12 +101,11 @@ var transitionize = (function () {
 		}
 		
 		_setSizeListener();
-	};
+	})();
 	
-	_init();
+	
 	
 	return {
-		init: _init,
 		update: _sizeElements
 	};
 	
