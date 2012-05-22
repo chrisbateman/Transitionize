@@ -6,8 +6,8 @@ var transitionize = (function () {
 	
 	var _killTransition = function(node) {
 		node.style.webkitTransition = 'none';
-		//node.style.OTransition = 'none'; // :(
 		// not necessary for FF
+		//node.style.OTransition = 'none'; // :(
 	};
 	
 	var _resetTransition = function(node) {
@@ -29,7 +29,8 @@ var transitionize = (function () {
 		} else { // looks like we're gonna do this the hard way
 			node.style.paddingTop = 0;
 			node.style.paddingBottom = 0;
-			node.style.height = 'auto';
+			//node.style.height = 'auto';
+			node.style.setProperty('height', 'auto', 'important');
 			
 			height = node.offsetHeight + 'px';
 			
