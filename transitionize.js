@@ -52,6 +52,7 @@ var transitionize = (function () {
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
 				var rule = rules[ruleIndex];
 				
+				// only works if both rules have transition definition
 				if (rule.cssText.match('transition') && rule.style.height != '') {
 					if (rule.style.height == 'auto') {
 						_selectors.push(rule.selectorText);
@@ -59,6 +60,7 @@ var transitionize = (function () {
 						rule.style.setProperty('height', rule.style.height, 'important');
 					}
 				}
+				
 			}
 		}
 	};
