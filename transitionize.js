@@ -34,6 +34,7 @@ var transitionize = (function () {
 	var _killTransition = function(node) {
 		node.style.webkitTransition = 'none';
 		node.style.msTransition = 'none';
+		node.style.transition = 'none';
 		// not necessary for FF
 	};
 	
@@ -47,6 +48,7 @@ var transitionize = (function () {
 		setTimeout(function() {
 			node.style.webkitTransition = '';
 			node.style.msTransition = '';
+			node.style.transition = '';
 		}, 0);
 	};
 	
@@ -57,10 +59,8 @@ var transitionize = (function () {
 	 * @returns Height of node, not including padding or border
 	**/
 	var _getRealHeight = function(node) {
-		var height;
-	
 		node.style.setProperty('height', 'auto', 'important');
-		height = window.getComputedStyle(node, null).height;
+		var height = window.getComputedStyle(node, null).height;
 		node.style.height = '';
 		
 		// removing alternate method unless needed
@@ -144,7 +144,7 @@ var transitionize = (function () {
 	
 	/**
 	 * @public
-	 * @description Notifies us that something has changed and we need to recalculate
+	 * @description Manual notification that something has changed and we need to recalculate
 	**/
 	var _update = function() {
 		//_addCSSUpdates();
