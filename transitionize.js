@@ -2,11 +2,28 @@
  * @fileOverview Allows transitioning to width & height:auto.
  * @author <a href="mailto:chris@cbateman.com">Chris Bateman</a>
  * @version 1.0
- * @requires Modernizr with CSS transitions detection
  */
 var transitionize = (function () {
 	
 	var _config;
+	var _testProps = ['transition', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
+	
+	
+	
+	/**
+	 * @private
+	 * @returns {Boolean} Browser supports transitions
+	**/
+	var _transitionSupport = function() {
+		var testStyle = document.body.style;
+		for (var i in _testProps) {
+            if (testStyle[_testProps[i]] !== undefined ) {
+                return true;
+            }
+        }
+		
+		return false;
+	};
 	
 	
 	/**
@@ -78,7 +95,7 @@ var transitionize = (function () {
 		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
 			var styleSheet = document.styleSheets[sheetIndex];
 			
-			var rules = styleSheet.rules || styleSheet.cssRules;
+			var rules = styleSheet.cssRules || styleSheet.rules;
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
 				var rule = rules[ruleIndex];
 				if (rule.selectorText && rule.selectorText.match(_config.selector)) {
@@ -113,7 +130,7 @@ var transitionize = (function () {
 	var _init = function(config) {
 		_config = config;
 		
-		if ((typeof Modernizr !== 'undefined' && !Modernizr.csstransitions) || navigator.appName === 'Opera' || !window.getComputedStyle) {
+		if (!_transitionSupport() || navigator.appName === 'Opera' || !window.getComputedStyle) {
 			return;
 		}
 		
