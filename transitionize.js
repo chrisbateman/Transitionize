@@ -6,6 +6,7 @@
 var transitionize = (function () {
 	
 	var _config;
+	var _selectorArray;
 	var _testProps = ['transition', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
 	
 	
@@ -98,7 +99,7 @@ var transitionize = (function () {
 			var rules = styleSheet.cssRules || styleSheet.rules;
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
 				var rule = rules[ruleIndex];
-				if (rule.selectorText && rule.selectorText.match(_config.selector)) {
+				if (rule.selectorText && _matchesSelector(rule.selectorText)) {
 					
 					if (rule.style.height !== '' && rule.style.height !== 'auto') {
 						rule.style.setProperty('height', rule.style.height, 'important');
@@ -106,6 +107,16 @@ var transitionize = (function () {
 				}
 			}
 		}
+	};
+	
+	
+	var _matchesSelector = function(text) {
+		for (var i=0,len=_selectorArray.length; i<len; i++) {
+			if (text.match(_selectorArray[i])) {
+				return true;
+			}
+		}
+		return false;
 	};
 	
 	
@@ -129,6 +140,7 @@ var transitionize = (function () {
 	**/
 	var _init = function(config) {
 		_config = config;
+		_selectorArray = config.selector.split(',');
 		
 		if (!_transitionSupport() || navigator.appName === 'Opera' || !window.getComputedStyle) {
 			return;
