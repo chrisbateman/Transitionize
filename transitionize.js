@@ -7,6 +7,7 @@ var transitionize = (function () {
 	
 	var _config;
 	var _selectorArray;
+	var _elementData;
 	var _testProps = ['transition', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
 	
 	
@@ -70,45 +71,6 @@ var transitionize = (function () {
 	}
 	
 	
-	/**
-	 * @private
-	 * @description Iterates through nodes that match selector, calculates and sets height
-	**/
-	var _sizeElements = function() {
-		var elements = document.querySelectorAll(_config.selector);
-		
-		var eIndex = elements.length;
-		while (eIndex--) {
-			var node = elements[eIndex];
-			
-			_killTransition(node);
-			node.style.height = _getRealHeight(node);
-			_resetTransition(node);
-		}
-	};
-	
-	
-	/**
-	 * @private
-	 * @description Iterates through stylesheets and adds !important to height rules matching selector
-	**/
-	var _addCSSUpdates = function() {
-		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
-			var styleSheet = document.styleSheets[sheetIndex];
-			
-			var rules = styleSheet.cssRules || styleSheet.rules;
-			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
-				var rule = rules[ruleIndex];
-				if (rule.selectorText && _matchesSelector(rule.selectorText)) {
-					
-					if (rule.style.height !== '' && rule.style.height !== 'auto') {
-						rule.style.setProperty('height', rule.style.height, 'important');
-					}
-				}
-			}
-		}
-	};
-	
 	
 	var _matchesSelector = function(text) {
 		for (var i=0,len=_selectorArray.length; i<len; i++) {
@@ -128,9 +90,69 @@ var transitionize = (function () {
 		var resizeTimeout;
 		window.addEventListener('resize', function() {
 			window.clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(_sizeElements, 50);
+			resizeTimeout = setTimeout(function() {
+				//_updateElements();
+				//_sizeElements();
+				
+			}, 50);
 		});
 	};
+	
+	var _updateElements = function() {
+		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
+			var styleSheet = document.styleSheets[sheetIndex];
+			
+			var rules = styleSheet.cssRules || styleSheet.rules;
+			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
+				var rule = rules[ruleIndex];
+				if (rule.selectorText && _matchesSelector(rule.selectorText)) {
+					
+					if (rule.style.height == 'auto') {
+						console.log(rule.selectorText);
+						top.tester = rule;
+						_calcHeights(rule.selectorText);
+					} else if (rule.style.height == '0px') {
+						//console.log(rule.selectorText);
+
+						rule.style.setProperty('height', rule.style.height, 'important');
+					}
+					
+				}
+			}
+		}
+	};
+	
+	var _calcHeights = function(selectorText) {
+		var elements = document.querySelectorAll(selectorText);
+		
+		
+		
+		for (var i=0,len=elements.length; i<len; i++) {
+			var node = elements[i];
+			
+			var id = _getUID();
+			
+			node.setAttribute('data-transitionize', id);
+			
+			var style = document.createElement('style');
+			style.setAttribute('data-transitionize', id);
+			
+			_killTransition(node);
+			var height = _getRealHeight(node);
+			_resetTransition(node);
+			
+			style.innerHTML = selectorText + '[data-transitionize="' + id + '"] { height:' + height + '; }';
+			
+			document.body.appendChild(style);
+		}
+		
+	};
+	
+	var uidIndex = 0;
+	var _getUID = function() {
+		uidIndex++;
+		return uidIndex;
+	}
 	
 	
 	/**
@@ -147,9 +169,10 @@ var transitionize = (function () {
 		}
 		
 		if (window.innerWidth !== 0) { // fixes strange issue opening new tab with alt+enter
-			_sizeElements();
+			//_sizeElements();
 		}
-		_addCSSUpdates();
+		//_addCSSUpdates();
+		_updateElements();
 		_setSizeListener();
 	};
 	
