@@ -6,7 +6,6 @@
 var transitionize = (function () {
 	
 	var _config;
-	var _selectorArray;
 	var _elementData;
 	var _testProps = ['transition', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
 	
@@ -72,14 +71,6 @@ var transitionize = (function () {
 	
 	
 	
-	var _matchesSelector = function(text) {
-		for (var i=0,len=_selectorArray.length; i<len; i++) {
-			if (text.match(_selectorArray[i])) {
-				return true;
-			}
-		}
-		return false;
-	};
 	
 	
 	/**
@@ -93,7 +84,6 @@ var transitionize = (function () {
 			resizeTimeout = setTimeout(function() {
 				//_updateElements();
 				//_sizeElements();
-				
 			}, 50);
 		});
 	};
@@ -105,26 +95,57 @@ var transitionize = (function () {
 			var rules = styleSheet.cssRules || styleSheet.rules;
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
 				var rule = rules[ruleIndex];
-				if (rule.selectorText && _matchesSelector(rule.selectorText)) {
-					
-					if (rule.style.height == 'auto') {
-						console.log(rule.selectorText);
-						top.tester = rule;
+				
+				var matches = _matchesSelector(rule.selectorText);
+				
+				if (matches == 'primary') {
+					if (rule.style.height == 'auto' || rule.style.height == '') {
 						_calcHeights(rule.selectorText);
 					} else if (rule.style.height == '0px') {
-						//console.log(rule.selectorText);
-
-						rule.style.setProperty('height', rule.style.height, 'important');
+						
+						_calcHeights(rule.selectorText, _getAlt(rule.selectorText));
 					}
-					
+				} else if (matches == 'alt') {
+					if (rule.style.height == 'auto' || rule.style.height == '') {
+						
+					} else if (rule.style.height == '0px') {
+						rule.style.setProperty('height', rule.style.height, '!important');
+					}
 				}
+				
 			}
 		}
 	};
 	
-	var _calcHeights = function(selectorText) {
-		var elements = document.querySelectorAll(selectorText);
+	
+	var _getAlt = function(text) {
+		for (var i=0,len=_config.length; i<len; i++) {
+			var item = _config[i];
+			
+			if (text == item.selector && item.selectorAlt) {
+				return item.selectorAlt;
+			}
+		}
+		return null;
+	}
+	
+	
+	var _matchesSelector = function(text) {
+		for (var i=0,len=_config.length; i<len; i++) {
+			var item = _config[i];
+			if (text == item.selector) {
+				return 'primary';
+			} else if (item.selectorAlt && text.match(item.selectorAlt)) {
+				return 'alt';
+			}
+		}
 		
+		return false;
+	};
+	
+	
+	var _calcHeights = function(selectorText, useSelector) {
+		var elements = document.querySelectorAll(selectorText);
 		
 		
 		for (var i=0,len=elements.length; i<len; i++) {
@@ -141,7 +162,12 @@ var transitionize = (function () {
 			var height = _getRealHeight(node);
 			_resetTransition(node);
 			
-			style.innerHTML = selectorText + '[data-transitionize="' + id + '"] { height:' + height + '; }';
+			if (useSelector) {
+				style.innerHTML = useSelector;
+			} else {
+				style.innerHTML = selectorText;
+			}
+			style.innerHTML += '[data-transitionize="' + id + '"] { height:' + height + '; }';
 			
 			document.body.appendChild(style);
 		}
@@ -162,7 +188,6 @@ var transitionize = (function () {
 	**/
 	var _init = function(config) {
 		_config = config;
-		_selectorArray = config.selector.split(',');
 		
 		if (!_transitionSupport() || navigator.appName === 'Opera' || !window.getComputedStyle) {
 			return;
