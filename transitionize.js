@@ -6,7 +6,8 @@
 var transitionize = (function () {
 	
 	var _config;
-	var _elementData;
+	var _elementData = [];
+	var _styleNode;
 	var _testProps = ['transition', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
 	
 	
@@ -71,22 +72,10 @@ var transitionize = (function () {
 	
 	
 	
-	/**
-	 * @private
-	 * @description Calls _sizeElements when window is resized
-	**/
-	var _setSizeListener = function() {
-		var resizeTimeout;
-		window.addEventListener('resize', function() {
-			window.clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(function() {
-				//_updateElements();
-				//_sizeElements();
-			}, 50);
-		});
-	};
-	
 	var _updateElements = function() {
+		
+		_elementData = [];
+		
 		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
 			var styleSheet = document.styleSheets[sheetIndex];
 			
@@ -108,6 +97,14 @@ var transitionize = (function () {
 				
 			}
 		}
+		
+		var styleText = '';
+		
+		for (var i=0,len=_elementData.length; i<len; i++) {
+			styleText += _elementData[i].styleText + '\r\n';
+		}
+		
+		_styleNode.innerHTML = styleText;
 	};
 	
 	
@@ -148,23 +145,25 @@ var transitionize = (function () {
 			
 			node.setAttribute('data-transitionize', id);
 			
-			var style = document.createElement('style');
-			style.setAttribute('data-transitionize', id);
-			
 			_killTransition(node);
 			var height = _getRealHeight(node);
 			_resetTransition(node);
 			
-			if (useSelector) {
-				style.innerHTML = useSelector;
-			} else {
-				style.innerHTML = selectorText;
-			}
-			style.innerHTML += '[data-transitionize="' + id + '"] { height:' + height + '; }';
+			var styleText = '';
 			
-			document.body.appendChild(style);
+			if (useSelector) {
+				styleText = useSelector;
+			} else {
+				styleText = selectorText;
+			}
+			styleText += '[data-transitionize="' + id + '"] { height:' + height + '; }';
+			
+			_elementData.push({
+				id: id,
+				node: node,
+				styleText: styleText
+			});
 		}
-		
 	};
 	
 	var uidIndex = 0;
@@ -172,6 +171,21 @@ var transitionize = (function () {
 		uidIndex++;
 		return uidIndex;
 	}
+	
+	
+	/**
+	 * @private
+	 * @description Calls _sizeElements when window is resized
+	**/
+	var _setSizeListener = function() {
+		var resizeTimeout;
+		window.addEventListener('resize', function() {
+			window.clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(function() {
+				_updateElements();
+			}, 30);
+		});
+	};
 	
 	
 	/**
@@ -186,11 +200,12 @@ var transitionize = (function () {
 			return;
 		}
 		
+		_styleNode = document.createElement('style');
+		document.body.appendChild(_styleNode);
+		
 		if (window.innerWidth !== 0) { // fixes strange issue opening new tab with alt+enter
-			//_sizeElements();
+			_updateElements();
 		}
-		//_addCSSUpdates();
-		_updateElements();
 		_setSizeListener();
 	};
 	
