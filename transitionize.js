@@ -64,8 +64,6 @@ var transitionize = (function () {
 		var height = window.getComputedStyle(node, null).height;
 		node.style.height = '';
 		
-		// removing alternate method unless needed
-		
 		return height;
 	}
 	
@@ -102,15 +100,10 @@ var transitionize = (function () {
 					if (rule.style.height == 'auto' || rule.style.height == '') {
 						_calcHeights(rule.selectorText);
 					} else if (rule.style.height == '0px') {
-						
 						_calcHeights(rule.selectorText, _getAlt(rule.selectorText));
 					}
-				} else if (matches == 'alt') {
-					if (rule.style.height == 'auto' || rule.style.height == '') {
-						
-					} else if (rule.style.height == '0px') {
-						rule.style.setProperty('height', rule.style.height, '!important');
-					}
+				} else if (matches == 'alt' && rule.style.height == '0px') {
+					rule.style.setProperty('height', rule.style.height, '!important');
 				}
 				
 			}
