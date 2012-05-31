@@ -8,6 +8,7 @@ var transitionize = (function () {
 	var _config;
 	var _elementData = [];
 	var _styleNode;
+	var _lastSheetCount = 0;
 	var _testProps = ['transition', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
 	
 	
@@ -76,8 +77,15 @@ var transitionize = (function () {
 		
 		_elementData = [];
 		
-		for (var sheetIndex=0; sheetIndex<document.styleSheets.length; sheetIndex++) {
+		_lastSheetCount = document.styleSheets.length;
+		
+		
+		for (var sheetIndex=0; sheetIndex<_lastSheetCount; sheetIndex++) {
 			var styleSheet = document.styleSheets[sheetIndex];
+			
+			if (styleSheet.ownerNode == _styleNode) {
+				continue;
+			}
 			
 			var rules = styleSheet.cssRules || styleSheet.rules;
 			for (var ruleIndex=0,len=rules.length; ruleIndex<len; ruleIndex++) {
@@ -91,8 +99,8 @@ var transitionize = (function () {
 					} else if (rule.style.height == '0px') {
 						_calcHeights(rule.selectorText, _getAlt(rule.selectorText));
 					}
-				} else if (matches == 'alt' && rule.style.height == '0px') {
-					rule.style.setProperty('height', rule.style.height, '!important');
+				} else if (matches == 'alt' && (rule.style.height == '0px' || rule.style.height == '0pt')) {
+					rule.style.setProperty('height', rule.style.height, 'important');
 				}
 				
 			}
@@ -106,6 +114,30 @@ var transitionize = (function () {
 		
 		_styleNode.innerHTML = styleText;
 	};
+	
+	
+	var _updateSizes = function() {
+		
+		for (var i=0; i<_elementData.length; i++) {
+			var thisElement = _elementData[i];
+			
+			_killTransition(thisElement.node);
+			
+			var height = _getRealHeight(thisElement.node);
+			thisElement.styleText = thisElement.styleSelector + ' { height:' + height + '; }';
+			
+			_resetTransition(thisElement.node);
+			
+		}
+		
+		var styleText = '';
+		
+		for (var i=0,len=_elementData.length; i<len; i++) {
+			styleText += _elementData[i].styleText + '\r\n';
+		}
+		
+		_styleNode.innerHTML = styleText;
+	}
 	
 	
 	var _getAlt = function(text) {
@@ -149,18 +181,20 @@ var transitionize = (function () {
 			var height = _getRealHeight(node);
 			_resetTransition(node);
 			
-			var styleText = '';
+			var styleSelector = '';
 			
 			if (useSelector) {
-				styleText = useSelector;
+				styleSelector = useSelector;
 			} else {
-				styleText = selectorText;
+				styleSelector = selectorText;
 			}
-			styleText += '[data-transitionize="' + id + '"] { height:' + height + '; }';
+			styleSelector += '[data-transitionize="' + id + '"]';
+			var styleText = styleSelector + ' { height:' + height + '; }';
 			
 			_elementData.push({
 				id: id,
 				node: node,
+				styleSelector: styleSelector,
 				styleText: styleText
 			});
 		}
@@ -182,8 +216,8 @@ var transitionize = (function () {
 		window.addEventListener('resize', function() {
 			window.clearTimeout(resizeTimeout);
 			resizeTimeout = setTimeout(function() {
-				_updateElements();
-			}, 30);
+				_update();
+			}, 50);
 		});
 	};
 	
@@ -215,8 +249,12 @@ var transitionize = (function () {
 	 * @description Manual notification that something has changed and we need to recalculate
 	**/
 	var _update = function() {
-		//_addCSSUpdates();
-		_sizeElements();
+		
+		if (document.styleSheets.length != _lastSheetCount) {
+			_updateElements();
+		} else {
+			_updateSizes();
+		}
 	};
 	
 	
