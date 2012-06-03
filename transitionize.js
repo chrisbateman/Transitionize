@@ -29,49 +29,6 @@ var transitionize = (function () {
 	};
 	
 	
-	/**
-	 * @private
-	 * @param {DOM Node} node
-	 * @description Removes transitions for some browsers
-	**/
-	var _killTransition = function(node) {
-		node.style.webkitTransition = 'none';
-		node.style.msTransition = 'none';
-		node.style.transition = 'none';
-		// not necessary for FF
-	};
-	
-	
-	/**
-	 * @private
-	 * @param {DOM Node} node
-	 * @description Resets transitions set inline
-	**/
-	var _resetTransition = function(node) {
-		setTimeout(function() {
-			node.style.webkitTransition = '';
-			node.style.msTransition = '';
-			node.style.transition = '';
-		}, 0);
-	};
-	
-	
-	/**
-	 * @private
-	 * @param {DOM Node} node
-	 * @returns Height of node, not including padding or border
-	**/
-	var _getRealHeight = function(node) {
-		node.style.setProperty('height', 'auto', 'important');
-		var height = window.getComputedStyle(node, null).height;
-		node.style.height = '';
-		
-		return height;
-	}
-	
-	
-	
-	
 	
 	var _updateElements = function() {
 		
@@ -95,9 +52,9 @@ var transitionize = (function () {
 				
 				if (matches == 'primary') {
 					if (rule.style.height == 'auto' || rule.style.height == '') {
-						_calcHeights(rule.selectorText);
+						_initElements(rule.selectorText);
 					} else if (rule.style.height == '0px') {
-						_calcHeights(rule.selectorText, _getAlt(rule.selectorText));
+						_initElements(rule.selectorText, _getAlt(rule.selectorText));
 					}
 				} else if (matches == 'alt' && (rule.style.height == '0px' || rule.style.height == '0pt')) {
 					rule.style.setProperty('height', rule.style.height, 'important');
@@ -106,30 +63,62 @@ var transitionize = (function () {
 			}
 		}
 		
-		var styleText = '';
-		
-		for (var i=0,len=_elementData.length; i<len; i++) {
-			styleText += _elementData[i].styleText + '\r\n';
-		}
-		
-		_styleNode.innerHTML = styleText;
+		_updateSizes();
 	};
 	
 	
 	var _updateSizes = function() {
+		var tempStylesBase = _genTempStylesBase();
+		
+		
+		var tempTransitionStyles = tempStylesBase + ' { -webkit-transition:none!important;-ms-transition:none!important;transition:none!important; }';
+		var tempHeightStyles = tempStylesBase + ' { height:auto!important; }';
+		
+		var tempTransitionSheet = _insertStyles(tempTransitionStyles);
+		var tempHeightSheet = _insertStyles(tempHeightStyles);
+		
 		
 		for (var i=0; i<_elementData.length; i++) {
-			var thisElement = _elementData[i];
+			var nodeInfo = _elementData[i];
+			nodeInfo.height = window.getComputedStyle(nodeInfo.node, null).height;
 			
-			_killTransition(thisElement.node);
-			
-			var height = _getRealHeight(thisElement.node);
-			thisElement.styleText = thisElement.styleSelector + ' { height:' + height + '; }';
-			
-			_resetTransition(thisElement.node);
-			
+			nodeInfo.styleText = nodeInfo.styleSelector + ' { height:' + nodeInfo.height + '; }';
 		}
 		
+		document.body.removeChild(tempHeightSheet);
+		
+		
+		_updateStylesheet();
+		
+		
+		setTimeout(function() { // necessary in Webkit, not in Firefox
+			document.body.removeChild(tempTransitionSheet);
+		},0);
+	};
+	
+	
+	var _insertStyles = function(styleText) {
+		var sheet = document.createElement('style');
+		sheet.innerHTML = styleText;
+		document.body.appendChild(sheet);
+		
+		return sheet;
+	};
+	
+	
+	var _genTempStylesBase = function() {
+		var tempStylesBase = '';
+		for (var i=0; i<_elementData.length; i++) {
+			var nodeInfo = _elementData[i];
+			
+			tempStylesBase += nodeInfo.baseSelector + '[data-transitionize="' + nodeInfo.id + '"],' + '\r\n';
+		}
+		
+		return tempStylesBase.slice(0, -3);
+	};
+	
+	
+	var _updateStylesheet = function() {
 		var styleText = '';
 		
 		for (var i=0,len=_elementData.length; i<len; i++) {
@@ -149,7 +138,7 @@ var transitionize = (function () {
 			}
 		}
 		return null;
-	}
+	};
 	
 	
 	var _matchesSelector = function(text) {
@@ -166,9 +155,8 @@ var transitionize = (function () {
 	};
 	
 	
-	var _calcHeights = function(selectorText, useSelector) {
+	var _initElements = function(selectorText, useSelector) {
 		var elements = document.querySelectorAll(selectorText);
-		
 		
 		for (var i=0,len=elements.length; i<len; i++) {
 			var node = elements[i];
@@ -177,9 +165,6 @@ var transitionize = (function () {
 			
 			node.setAttribute('data-transitionize', id);
 			
-			_killTransition(node);
-			var height = _getRealHeight(node);
-			_resetTransition(node);
 			
 			var styleSelector = '';
 			
@@ -189,13 +174,12 @@ var transitionize = (function () {
 				styleSelector = selectorText;
 			}
 			styleSelector += '[data-transitionize="' + id + '"]';
-			var styleText = styleSelector + ' { height:' + height + '; }';
 			
 			_elementData.push({
 				id: id,
 				node: node,
-				styleSelector: styleSelector,
-				styleText: styleText
+				baseSelector: selectorText,
+				styleSelector: styleSelector
 			});
 		}
 	};
@@ -217,7 +201,7 @@ var transitionize = (function () {
 			window.clearTimeout(resizeTimeout);
 			resizeTimeout = setTimeout(function() {
 				_update();
-			}, 50);
+			}, 70);
 		});
 	};
 	
@@ -249,7 +233,6 @@ var transitionize = (function () {
 	 * @description Manual notification that something has changed and we need to recalculate
 	**/
 	var _update = function() {
-		
 		if (document.styleSheets.length != _lastSheetCount) {
 			_updateElements();
 		} else {
