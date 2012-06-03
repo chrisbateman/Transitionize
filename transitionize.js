@@ -5,7 +5,7 @@
  */
 var transitionize = (function () {
 	
-	var _config;
+	var _config = [];
 	var _elementData = [];
 	var _styleNode;
 	var _lastSheetCount = 0;
@@ -212,7 +212,14 @@ var transitionize = (function () {
 	 * @description Removes transitions for some browsers
 	**/
 	var _init = function(config) {
-		_config = config;
+		
+		if (Object.prototype.toString.call(config) === '[object Array]') {
+			_config = config;
+		} else if (typeof config === 'object') {
+			_config.push(config);
+		} else {
+			return;
+		}
 		
 		if (!_transitionSupport() || navigator.appName === 'Opera' || !window.getComputedStyle) {
 			return;
